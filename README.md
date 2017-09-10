@@ -1,4 +1,4 @@
-# Page wise style & script for WordPress
+# Pagewise style & script for WordPress
 
 A WordPress plugin to customize pages by adding style and script on each page, post or even custom post types.
 
@@ -12,5 +12,5 @@ A WordPress plugin to customize pages by adding style and script on each page, p
 
 ### Changelog
 
-1.1 Add permission setting in writing settings page
-1.2 Hide meta data from custom field
+1. 1.1 Add permission setting in writing settings page
+2. 1.2 Hide meta data from custom field
