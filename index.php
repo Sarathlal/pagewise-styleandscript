@@ -2,20 +2,20 @@
 /*
 Plugin Name: Pagewise style & script
 Plugin URI: http://sarathlal.com/wp-plugins/
-Description: A WordPress plugin to customize pages by adding style and script on each page, post or even custom post types.
-Version: 1.0
+Description: Customize pages by adding style and script on each page, post or even custom post types.
+Version: 1.2
+Text Domain: styleandscript
 Author: sarathlal N
 Author URI: http://sarathlal.com
 * */
 
 
 /**
- * The Class.
+ * The Class
  */
 class PagewiseStyleandscript {
-	
+
 public function __construct() {
-	add_action( 'plugins_loaded', array( $this, 'check_user_permission' ) );
 	add_action('add_meta_boxes', array($this, 'styleandscript_meta_box'));
 	add_action('save_post', array($this, 'save_meta'));
 	add_action('wp_head', array($this, 'page_style_to_wp_head'));
@@ -30,8 +30,8 @@ function styleandscript_meta_box() {
 	$args = array('public'   => true );
 	$post_types = get_post_types( $args );
 	foreach ( $post_types  as $post_type ) {
-		add_meta_box( 'page_style_meta', __( 'Styles', 'styleandscript' ), array($this,'page_style_meta_callback'), $post_type );
-		add_meta_box( 'page_script_meta', __( 'Scripts', 'styleandscript' ), array($this,'page_script_meta_callback'), $post_type );
+		add_meta_box( '_page_style_meta', __( 'Styles', 'styleandscript' ), array($this,'page_style_meta_callback'), $post_type );
+		add_meta_box( '_page_script_meta', __( 'Scripts', 'styleandscript' ), array($this,'page_script_meta_callback'), $post_type );
 	}
 }
 
@@ -41,18 +41,22 @@ function styleandscript_meta_box() {
 function page_style_meta_callback( $post ) {
     wp_nonce_field( basename( __FILE__ ), 'styleandscript_nonce' );
     $styleandscript_stored_data = get_post_meta( $post->ID );
-    //$editable = (styleandscript_check_user_permission() == true) ? "" : "readonly";
-    //echo styleandscript_check_user_permission();
+    $editable = ($this->check_user_permission() == true) ? "" : "readonly";
+
     echo '<p>';
-	echo '<textarea name="page-style" id="page-style" style="width: 100%; height: 6em;" '.$editable.'>';
-	if ( isset ( $styleandscript_stored_data['pagestyle'] ) ){
-		 echo $styleandscript_stored_data['pagestyle'][0];
-	}
-	echo '</textarea>';
-	echo '<label for="page-style" class="prfx-row-title">';
-	_e( 'Add Style for this page', 'styleandscript' );
-	echo '</label>';
-	echo '</p>';
+		echo '<textarea name="page-style" id="page-style" style="width: 100%; height: 6em;" '.$editable.'>';
+		if ( isset ( $styleandscript_stored_data['pagestyle'] ) ){
+			 echo $styleandscript_stored_data['pagestyle'][0];
+		}
+		echo '</textarea>';
+		echo '<label for="page-style" class="prfx-row-title">';
+		if($this->check_user_permission() == true) {
+			_e( "Add Style for this page", 'styleandscript' );
+		} else {
+			_e( "You don't have permission to write", 'styleandscript' );
+		}
+		echo '</label>';
+		echo '</p>';
 }
 
 /**
@@ -61,19 +65,22 @@ function page_style_meta_callback( $post ) {
 function page_script_meta_callback( $post ) {
     wp_nonce_field( basename( __FILE__ ), 'styleandscript_nonce' );
     $styleandscript_stored_data = get_post_meta( $post->ID );
-    var_dump(check_user_permission());
-    //styleandscript_check_user_permission($current_user);
-    //$editable = styleandscript_check_user_permission() == true) ? "" : "readonly";
+    $editable = ($this->check_user_permission() == true) ? "" : "readonly";
+
     echo '<p>';
-	echo '<textarea name="page-script" id="page-script" style="width: 100%; height: 6em;" '.$editable.'>';
-	if ( isset ( $styleandscript_stored_data['pagescript'] ) ){
-		 echo $styleandscript_stored_data['pagescript'][0];
-	}
-	echo '</textarea>';
-	echo '<label for="page-style" class="prfx-row-title">';
-	_e( 'Add Scripts for this page', 'styleandscript' );
-	echo '</label>';
-	echo '</p>';
+		echo '<textarea name="page-script" id="page-script" style="width: 100%; height: 6em;" '.$editable.'>';
+		if ( isset ( $styleandscript_stored_data['pagescript'] ) ){
+			echo $styleandscript_stored_data['pagescript'][0];
+		}
+		echo '</textarea>';
+		echo '<label for="page-style" class="prfx-row-title">';
+		if($this->check_user_permission() == true) {
+			_e( "Add Scripts for this page", 'styleandscript' );
+		} else {
+			_e( "You don't have permission to write", 'styleandscript' );
+		}
+		echo '</label>';
+		echo '</p>';
 }
 
 /**
@@ -90,14 +97,14 @@ function save_meta($post_id) {
         return;
     }
 
-	// Checks for input and saves if needed
-	if( isset( $_POST[ 'page-style' ] ) ) {
-		update_post_meta( $post_id, 'pagestyle', $_POST[ 'page-style' ] );
-	}
+		// Checks for input and saves if needed
+		if( isset( $_POST[ 'page-style' ] ) ) {
+			update_post_meta( $post_id, 'pagestyle', $_POST[ 'page-style' ] );
+		}
 
-	if( isset( $_POST[ 'page-script' ] ) ) {
-		update_post_meta( $post_id, 'pagescript', $_POST[ 'page-script' ] );
-	}
+		if( isset( $_POST[ 'page-script' ] ) ) {
+			update_post_meta( $post_id, 'pagescript', $_POST[ 'page-script' ] );
+		}
  }
 
 //Add the styles on head
@@ -134,10 +141,10 @@ function styleandscript_admin_init(){
 		'writing',                 					// settings page
 		'styleandscript_options'            		// option name
 	);
-	
+
 	add_settings_field(
 		'styleandscript_user_role',        			// id
-		'Style & Script - User Role',      			// setting title
+		_e( 'Style & Script - User Role', 'styleandscript' ),      			// setting title
 		array($this,'styleandscript_setting_input'),// display callback
 		'writing',                 		   			// settings page
 		'default'                          			// settings section
@@ -156,30 +163,27 @@ function styleandscript_setting_input() {
 	?>
 	<select id='styleandscript_user_role' name='styleandscript_options[user_role]'>
 		<?php wp_dropdown_roles($value); ?>
-	</select> Member with this role can only add page wise style & script.
+	</select>
 	<?php
+	_e( 'Member with this role can only add page wise style & script.', 'styleandscript' );
 }
 
 //Check current user role & give permission
 public function check_user_permission() {
-	return "bla bla bla";
-	/*
 	global $current_user;
 	$current_user = wp_get_current_user();
     $current_user_role = $current_user->roles ? $current_user->roles[0] : false;
 	//Get plugin user role setting
  	$styleandscript_options = get_option( 'styleandscript_options' );
-	$setting_value = $styleandscript_options['user_role'];   
+	$setting_value = $styleandscript_options['user_role'];
 	if(($setting_value == $current_user_role) or (current_user_can('administrator'))){
 		return true;
 	} else {
 		return false;
 	}
-	* */
-			
-}
-
 
 }
 
-new PagewiseStyleandscript;
+}
+
+$PagewiseStyleandscript = new PagewiseStyleandscript;
